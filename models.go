@@ -42,7 +42,7 @@ var gormConfig = &gorm.Config{
 
 func InitDB() {
 	var err error
-	DB, err = gorm.Open(mysql.Open(Config.DbUrl.String()), gormConfig)
+	DB, err = gorm.Open(mysql.Open(Config.DbUrl), gormConfig)
 	if err != nil {
 		log.Fatalf("error failed to connect to database: %s", err)
 	}

@@ -23,7 +23,7 @@ func InitSearch() {
 
 	var err error
 	ES, err = elasticsearch.NewClient(elasticsearch.Config{
-		Addresses: []string{Config.ElasticsearchUrl.String()},
+		Addresses: []string{Config.ElasticsearchUrl},
 	})
 	if err != nil {
 		log.Fatalf("Error creating the client: %s", err)
