@@ -9,7 +9,6 @@ import (
 	"github.com/elastic/go-elasticsearch/v8/esapi"
 	"io"
 	"log"
-	"strconv"
 	"strings"
 )
 
@@ -60,16 +59,17 @@ func CheckIndex() {
 	_ = rsp.Body.Close()
 	if rsp.StatusCode == 404 {
 		indexMapping := Map{
-			"mapping": Map{
+			"mappings": Map{
 				"properties": Map{
 					"content": Map{
-						"type":     "text",
-						"analyzer": "ik_smart",
+						"type":            "text",
+						"analyzer":        "ik_max_word",
+						"search_analyzer": "ik_smart",
 					},
 				},
 			},
 		}
-		buffer := bytes.NewBuffer(make([]byte, 1024))
+		buffer := bytes.NewBuffer(make([]byte, 0, 1024))
 		err = json.NewEncoder(buffer).Encode(indexMapping)
 		if err != nil {
 			log.Fatal(err)
@@ -94,13 +94,13 @@ var BulkBuffer *bytes.Buffer
 
 // BulkInsert run in single goroutine only, used when dump floors
 // see https://www.elastic.co/guide/en/elasticsearch/reference/master/docs-bulk.html
-func BulkInsert(floors Floors) {
+func BulkInsert(floors Floors) error {
 	if BulkBuffer == nil {
-		BulkBuffer = bytes.NewBuffer(make([]byte, 1024000))
+		BulkBuffer = bytes.NewBuffer(make([]byte, 0, 1024000)) // 100 KB buffer
 	}
 
 	if len(floors) == 0 {
-		return
+		return nil
 	}
 
 	firstFloorID := floors[0].ID
@@ -111,7 +111,7 @@ func BulkInsert(floors Floors) {
 		// data: should not contain \n, because \n is the delimiter of one action
 		data, err := json.Marshal(floor)
 		if err != nil {
-			log.Fatalf("Error failed to marshal floor: %s", err)
+			return fmt.Errorf("error failed to marshal floor: %s", err)
 		}
 		BulkBuffer.Write(data)
 		BulkBuffer.WriteByte('\n') // the final line of data must end with a newline character \n
@@ -119,46 +119,13 @@ func BulkInsert(floors Floors) {
 
 	log.Printf("Preparing insert floor [%d, %d]\n", firstFloorID, lastFloorID)
 
-	res, err := ES.Bulk(BulkBuffer, ES.Bulk.WithIndex(IndexName))
+	res, err := ES.Bulk(BulkBuffer, ES.Bulk.WithIndex(IndexName), ES.Bulk.WithRefresh("wait_for"))
 	if err != nil || res.IsError() {
-		log.Fatalf("Failure indexing floor [%d, %d]: %s", firstFloorID, lastFloorID, err)
+		return fmt.Errorf("error indexing floor [%d, %d]: %s", firstFloorID, lastFloorID, err)
 	}
 	_ = res.Body.Close()
 	log.Printf("index floor [%d, %d] success\n", firstFloorID, lastFloorID)
 
 	BulkBuffer.Reset()
-}
-
-// BulkDelete used when a hole becomes hidden and delete all of its floors
-func BulkDelete(floors Floors) {
-	// todo
-}
-
-// FloorIndex insert or replace a document, used when a floor is created
-// see https://www.elastic.co/guide/en/elasticsearch/reference/master/docs-index_.html
-func FloorIndex(floor *Floor) {
-	var buffer = bytes.NewBuffer(make([]byte, 16384))
-	err := json.NewEncoder(buffer).Encode(floor)
-	if err != nil {
-		log.Printf("floor insert error floor_id: %v", floor.ID)
-	}
-
-	req := esapi.IndexRequest{
-		Index:      IndexName,
-		DocumentID: strconv.Itoa(floor.ID),
-		Body:       buffer,
-		Refresh:    "true",
-	}
-
-	res, err := req.Do(context.Background(), ES)
-	if err != nil || res.IsError() {
-		log.Printf("error index floor: %d\n", floor.ID)
-	} else {
-		log.Printf("index floor success: %d\n", floor.ID)
-	}
-}
-
-// FloorDelete used when a floor is deleted
-func FloorDelete(floor *Floor) {
-	// todo
+	return nil
 }

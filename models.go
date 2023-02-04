@@ -23,6 +23,8 @@ type Hole struct {
 	Hidden bool `json:"hidden"`
 }
 
+type Holes []*Hole
+
 var DB *gorm.DB
 
 var gormConfig = &gorm.Config{
