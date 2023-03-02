@@ -62,9 +62,24 @@ func CheckIndex() {
 			"mappings": Map{
 				"properties": Map{
 					"content": Map{
-						"type":            "text",
-						"analyzer":        "ik_max_word",
+						"type": "text",
+
+						// https://www.elastic.co/guide/en/elasticsearch/reference/current/analyzer.html
+						"analyzer": "ik_max_word",
+
+						// https://www.elastic.co/guide/en/elasticsearch/reference/current/search-analyzer.html
 						"search_analyzer": "ik_smart",
+
+						// https://www.elastic.co/guide/en/elasticsearch/reference/current/similarity.html
+						"similarity": "boolean",
+					},
+					"id": Map{
+						// https://www.elastic.co/guide/en/elasticsearch/reference/current/number.html
+						"type": "long",
+					},
+					"updated_at": Map{
+						// https://www.elastic.co/guide/en/elasticsearch/reference/current/date.html
+						"type": "date",
 					},
 				},
 			},
@@ -119,7 +134,7 @@ func BulkInsert(floors Floors) error {
 
 	log.Printf("Preparing insert floor [%d, %d]\n", firstFloorID, lastFloorID)
 
-	res, err := ES.Bulk(BulkBuffer, ES.Bulk.WithIndex(IndexName), ES.Bulk.WithRefresh("wait_for"))
+	res, err := ES.Bulk(BulkBuffer, ES.Bulk.WithIndex(IndexName))
 	if err != nil || res.IsError() {
 		return fmt.Errorf("error indexing floor [%d, %d]: %s", firstFloorID, lastFloorID, err)
 	}

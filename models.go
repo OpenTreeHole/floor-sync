@@ -12,8 +12,9 @@ import (
 type Map map[string]any
 
 type Floor struct {
-	ID      int    `json:"-"`
-	Content string `json:"content"`
+	ID        int       `json:"id"`
+	UpdatedAt time.Time `json:"updated_at"`
+	Content   string    `json:"content"`
 }
 
 type Floors []*Floor
