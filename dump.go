@@ -22,7 +22,7 @@ func Dump() {
 			}
 			err := tx.
 				Table("floor").
-				Select("id", "content").
+				Select("id", "content", "updated_at").
 				Where("hole_id in (?) and deleted = 0", holeIDs).
 				Scan(&floors).Error
 			if err != nil {
