@@ -20,7 +20,6 @@ WORKDIR /app
 
 COPY --from=builder /app/treehole /app/
 COPY --from=builder /usr/share/zoneinfo /usr/share/zoneinfo
-COPY data data
 
 ENV TZ=Asia/Shanghai
 
