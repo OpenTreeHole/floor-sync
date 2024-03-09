@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/caarlos0/env/v6"
+	"github.com/caarlos0/env/v10"
 )
 
 var Config struct {

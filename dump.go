@@ -1,25 +1,22 @@
 package main
 
 import (
-	"gorm.io/gorm"
 	"log"
+
+	"gorm.io/gorm"
 )
 
 func Dump() {
-	var holes Holes
+	var holeIDs []int
 	var floors Floors
-	result := DB.Model(&Hole{}).
+	result := DB.Table("hole").
 		Select("id").
-		Where("hidden = ?", false).
-		FindInBatches(&holes, 1000, func(tx *gorm.DB, batch int) error {
-			if len(holes) == 0 {
+		Where("hidden = false").
+		FindInBatches(&holeIDs, 1000, func(tx *gorm.DB, batch int) error {
+			if len(holeIDs) == 0 {
 				return nil
 			}
 
-			var holeIDs = make([]int, 0, len(holes))
-			for _, hole := range holes {
-				holeIDs = append(holeIDs, hole.ID)
-			}
 			err := tx.
 				Table("floor").
 				Select("id", "content", "updated_at").
