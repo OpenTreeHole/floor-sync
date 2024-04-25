@@ -48,6 +48,7 @@ func InitSearch() {
 	log.Println(strings.Repeat("~", 37))
 
 	CheckIndex()
+	DeleteAllDocuments()
 }
 
 func CheckIndex() {
@@ -102,6 +103,21 @@ func CheckIndex() {
 		if rsp.IsError() {
 			log.Fatalf("Error: %s", rsp.String())
 		}
+	}
+}
+
+func DeleteAllDocuments() {
+	req := esapi.DeleteByQueryRequest{
+		Index: []string{IndexName},
+		Body:  strings.NewReader(`{"query": {"match_all": {}}}`),
+	}
+	rsp, err := req.Do(context.Background(), ES)
+	if err != nil {
+		log.Fatalf("Error getting response: %s", err)
+	}
+	_ = rsp.Body.Close()
+	if rsp.IsError() {
+		log.Fatalf("Error: %s", rsp.String())
 	}
 }
 
