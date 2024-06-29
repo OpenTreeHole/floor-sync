@@ -7,13 +7,11 @@ import (
 )
 
 func Dump() {
-	var holeIDs []int
+	var holes Holes
 	var floors Floors
-	result := DB.Model(&Hole{}).
-		Select("id").
-		Where("hidden = false").
-		FindInBatches(&holeIDs, 1000, func(tx *gorm.DB, batch int) error {
-			if len(holeIDs) == 0 {
+	result := DB.Where("hidden = false").
+		FindInBatches(&holes, 1000, func(tx *gorm.DB, batch int) error {
+			if len(holes) == 0 {
 				return nil
 			}
 
@@ -34,7 +32,7 @@ func Dump() {
 				return err
 			}
 
-			log.Printf("insert holes [%d, %d]\n", holeIDs[0], holeIDs[len(holeIDs)-1])
+			log.Printf("insert holes [%d, %d]\n", holes[0].ID, holes[len(holes)-1].ID)
 			return nil
 		})
 
