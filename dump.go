@@ -14,6 +14,10 @@ func Dump() {
 			if len(holes) == 0 {
 				return nil
 			}
+			holeIDs := make([]int, len(holes))
+			for i, hole := range holes {
+				holeIDs[i] = hole.ID
+			}
 
 			err := tx.
 				Table("floor").
