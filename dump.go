@@ -9,7 +9,7 @@ import (
 func Dump() {
 	var holeIDs []int
 	var floors Floors
-	result := DB.Table("hole").
+	result := DB.Model(&Hole{}).
 		Select("id").
 		Where("hidden = false").
 		FindInBatches(&holeIDs, 1000, func(tx *gorm.DB, batch int) error {
