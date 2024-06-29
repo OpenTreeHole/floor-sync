@@ -20,7 +20,7 @@ func Dump() {
 			err := tx.
 				Table("floor").
 				Select("id", "content", "updated_at").
-				Where("hole_id in (?) and deleted = 0", holeIDs).
+				Where("hole_id in (?) and deleted = 0 and ((is_actual_sensitive IS NOT NULL AND is_actual_sensitive = false) OR (is_actual_sensitive IS NULL AND is_sensitive = false))", holeIDs).
 				Scan(&floors).Error
 			if err != nil {
 				return err
